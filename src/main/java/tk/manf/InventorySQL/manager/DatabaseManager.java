@@ -26,6 +26,7 @@
 package tk.manf.InventorySQL.manager;
 
 import lombok.Getter;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -34,6 +35,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
+
 import tk.manf.InventorySQL.database.DatabaseHandler;
 import tk.manf.InventorySQL.database.handler.MySQLDatabaseHandler;
 import tk.manf.InventorySQL.event.PlayerLoadedEvent;
@@ -136,6 +138,11 @@ public final class DatabaseManager implements Listener {
         armor.remove(name);
     }
 
+	public static DatabaseManager getInstance()
+	{
+		return instance;
+	}
+	
     @Getter
     private static final DatabaseManager instance = new DatabaseManager();
 }

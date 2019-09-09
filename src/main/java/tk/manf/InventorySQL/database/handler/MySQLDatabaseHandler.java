@@ -25,16 +25,20 @@
 package tk.manf.InventorySQL.database.handler;
 
 import com.google.common.io.CharStreams;
+
 import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.ToString;
+
 import org.bukkit.Bukkit;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
+
 import tk.manf.InventorySQL.database.DatabaseHandler;
 import tk.manf.InventorySQL.datahandling.exceptions.DataHandlingException;
 import tk.manf.InventorySQL.manager.ConfigManager;
@@ -52,21 +56,23 @@ public class MySQLDatabaseHandler implements DatabaseHandler {
     private Queries q;
 
     @SneakyThrows(ClassNotFoundException.class)
-    public MySQLDatabaseHandler() {
+    public MySQLDatabaseHandler() throws ClassNotFoundException {
         Class.forName("com.mysql.jdbc.Driver");
     }
 
-    @Override
+    //@Override
     public void init(JavaPlugin plugin) throws Exception {
         q = new Queries(ConfigManager.getConfig(plugin, "dbhandler.yml"));
         Connection con = getConnection();
-        @Cleanup
-        Statement stmt = con.createStatement();
-        String[] queries = q.replaceTables(CharStreams.toString(new InputStreamReader(plugin.getResource("mysql/CREATE.sql")))).split(";");
-        for (String query : queries) {
-            if(query.trim().equalsIgnoreCase("")) {continue;}
-            LoggingManager.getInstance().d(query);
-            stmt.execute(query);
+        if (con != null) {
+	        @Cleanup
+	        Statement stmt = con.createStatement();
+	        String[] queries = q.replaceTables(CharStreams.toString(new InputStreamReader(plugin.getResource("mysql/CREATE.sql")))).split(";");
+	        for (String query : queries) {
+	            if(query.trim().equalsIgnoreCase("")) {continue;}
+	            LoggingManager.getInstance().d(query);
+	            stmt.execute(query);
+	        }
         }
 
         convertNames(plugin);
@@ -74,6 +80,8 @@ public class MySQLDatabaseHandler implements DatabaseHandler {
 
     private void convertNames(JavaPlugin plugin) throws Exception {
         final Connection con = getConnection();
+        
+        if (con == null)	return;
 
         PreparedStatement stmt = con.prepareStatement(q.CHECK_FOR_OLD_STRUCTURE_QUERY);
         ResultSet rs = stmt.executeQuery();
@@ -98,10 +106,11 @@ public class MySQLDatabaseHandler implements DatabaseHandler {
         new NameConversionTask(namesToConvert, con, q.PLAYER_DATABASE).runTaskAsynchronously(plugin);
     }
 
-    @Override
+    //@Override
     public void savePlayerInventory(Player player) throws Exception {
         final PlayerInventory inv = player.getInventory();
         final Connection con = getConnection();
+        if (con == null)	return;
         final int playerID = getPlayerID(String.valueOf(player.getUniqueId()), con);
         final String serverID = ConfigManager.getInstance().getServerID(player);
 
@@ -109,17 +118,19 @@ public class MySQLDatabaseHandler implements DatabaseHandler {
         PreparedStatement stmt = packInventory(con, q.INSERT_INVENTORY_QUERY, playerID, serverID, 3, inv.getContents(), inv.getArmorContents());
         //Stats
         stmt.setDouble(5, player.getHealth());
-        stmt.setDouble(6, player.getMaxHealth());
+        //stmt.setDouble(6, player.getMaxHealth());	//Pre-1.11 value
+		stmt.setDouble(6, player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
         stmt.setInt(7, player.getFoodLevel());
         execute(stmt);
         //Ender Chest
         execute(packInventory(con, q.INSERT_ENDERCHEST_QUERY, playerID, serverID, 3, player.getEnderChest()));
     }
 
-    @Override
+    //@Override
     public boolean loadPlayerInventory(Player player) throws Exception {
         LoggingManager.getInstance().d("Getting Player Inventory");
         final Connection con = getConnection();
+        if (con == null)	return false;
         final int playerID = getPlayerID(String.valueOf(player.getUniqueId()), con);
         final String serverID = ConfigManager.getInstance().getServerID(player);
         @Cleanup
@@ -134,8 +145,13 @@ public class MySQLDatabaseHandler implements DatabaseHandler {
             player.getInventory().setArmorContents(DataHandlingManager.getInstance().deserial(p.getBytes("armor")));
             player.getEnderChest().setContents(ender.next() ? DataHandlingManager.getInstance().deserial(ender.getBytes("content")) : new ItemStack[]{});
             //stats
-            player.setHealth(p.getDouble("min_health"));
-            player.setMaxHealth(p.getDouble("max_health"));
+            //NOT loading the max HP, as any worn items will add more HP on top of that
+            //player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(p.getDouble("max_health"));
+            double current_hp = p.getDouble("min_health");
+            if (p.getDouble("min_health") > player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue())
+            	current_hp = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+            player.setHealth(current_hp);
+            //player.setMaxHealth(p.getDouble("max_health"));	//Pre-1.11 method
             player.setFoodLevel(p.getInt("food"));
             return true;
         }
@@ -153,6 +169,7 @@ public class MySQLDatabaseHandler implements DatabaseHandler {
      * @throws SQLException
      */
     private int getPlayerID(String playerUUID, Connection con) throws SQLException {
+    	if (con == null)	return 0;
         int id;
         PreparedStatement stmt = con.prepareStatement(q.GET_PLAYER_ID_QUERY);
         stmt.setString(1, playerUUID);
@@ -179,7 +196,9 @@ public class MySQLDatabaseHandler implements DatabaseHandler {
 
     private Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed() || !connection.isValid(3)) {
-            connection = DriverManager.getConnection(ConfigManager.getInstance().getDbURL());
+        	String dbConn = ConfigManager.getInstance().getDbURL();
+        	if (!dbConn.isEmpty())
+        		connection = DriverManager.getConnection(dbConn);
         }
         return connection;
     }
@@ -191,6 +210,7 @@ public class MySQLDatabaseHandler implements DatabaseHandler {
     }
 
     private PreparedStatement prepare(Connection con, String query, int playerID, String serverID) throws SQLException {
+    	if (con == null)	return null;
         PreparedStatement stmt = con.prepareStatement(query);
         stmt.setInt(1, playerID);
         stmt.setString(2, serverID);
@@ -198,10 +218,12 @@ public class MySQLDatabaseHandler implements DatabaseHandler {
     }
 
     private PreparedStatement packInventory(Connection con, String query, int playerID, String serverID, int index, Inventory inv) throws SQLException, DataHandlingException {
+    	if (con == null)	return null;
         return packInventory(con, query, playerID, serverID, index, inv.getContents());
     }
 
     private PreparedStatement packInventory(Connection con, String query, int playerID, String serverID, int index, ItemStack[]   ... data) throws SQLException, DataHandlingException {
+    	if (con == null)	return null;
         PreparedStatement stmt = prepare(con, query, playerID, serverID);
         for (ItemStack[] is : data) {
             stmt.setBytes(index++, DataHandlingManager.getInstance().serial(is));
@@ -248,7 +270,7 @@ public class MySQLDatabaseHandler implements DatabaseHandler {
             this.GET_PLAYER_INVENTORY_DATA_QUERY = "SELECT content, armor, min_health, max_health, food FROM " + INVENTORY_DATABASE + " WHERE playerID=? AND server=? LIMIT 1";
             this.GET_PLAYER_ENDERCHEST_DATA_QUERY = "SELECT content FROM " + ENDERCHEST_DATABASE + " WHERE playerID=? AND server=? LIMIT 1";
             this.INSERT_PLAYER_QUERY = "INSERT INTO " + PLAYER_DATABASE + " (id, playeruuid) VALUES (NULL, ?)";
-            this.INSERT_INVENTORY_QUERY = "INSERT INTO " + INVENTORY_DATABASE + " (id, playerID, server, content, armor, min_health, max_health, food) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE content=VALUES(content), armor=VALUES(armor)";
+            this.INSERT_INVENTORY_QUERY = "INSERT INTO " + INVENTORY_DATABASE + " (id, playerID, server, content, armor, min_health, max_health, food) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE content=VALUES(content), armor=VALUES(armor), min_health=VALUES(min_health), max_health=VALUES(max_health), food=VALUES(food)";
             this.INSERT_ENDERCHEST_QUERY = "INSERT INTO " + ENDERCHEST_DATABASE + " (id, playerID, server, content) VALUES (NULL, ?, ?, ?) ON DUPLICATE KEY UPDATE content=VALUES(content)";
             this.CHECK_FOR_OLD_STRUCTURE_QUERY = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + PLAYER_DATABASE + "' AND COLUMN_NAME = 'playername'";
             this.ALTER_TABLE_ADD_QUERY = "ALTER TABLE " + PLAYER_DATABASE + " ADD `playeruuid` VARCHAR(36) NULL";

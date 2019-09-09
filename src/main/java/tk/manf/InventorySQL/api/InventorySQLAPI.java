@@ -27,10 +27,13 @@ package tk.manf.InventorySQL.api;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+
 import tk.manf.InventorySQL.manager.DatabaseManager;
 import tk.manf.InventorySQL.manager.InventoryLockingSystem;
+import tk.manf.InventorySQL.manager.LoggingManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -90,6 +93,11 @@ public class InventorySQLAPI {
         player.sendPluginMessage(plugin, CHANNEL, message);
     }
     
+	public static InventorySQLAPI getAPI()
+	{
+		return API;
+	}
+	
     @Getter
     private static final InventorySQLAPI API = new InventorySQLAPI();
 }

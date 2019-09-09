@@ -29,6 +29,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventException;
@@ -92,37 +93,11 @@ public final class UpdateEventManager implements Listener {
         LoggingManager.getInstance().d("on" + event.getEventName() + "(" + player.getUniqueId() + ")");
         DatabaseManager.getInstance().savePlayer(player);
     }
-    @Getter
+
+	public static UpdateEventManager getInstance()
+	{
+		return instance;
+	}
+	
     private static final UpdateEventManager instance = new UpdateEventManager();
-}
-
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-final class UpdateEvent {
-    private final Class<? extends Event> event;
-    private final EventExecutor exec;
-
-    protected UpdateEvent(final Class<? extends Event> type, final Method m) {
-        this(type, new EventExecutor() {
-            public void execute(Listener listener, Event event) throws EventException {
-                try {
-                    if (listener instanceof UpdateEventManager) {
-                        // Prevent illegal Argument Exception
-                        if(m.getParameterTypes()[0] == event.getClass()) {
-                             m.invoke(listener, event);
-                        }
-                    }
-                } catch (Exception e) {
-                    LoggingManager.getInstance().log(LoggingManager.Level.ERROR, "Error with Event: " + String.valueOf(listener) + " - EV: " + event == null ? "failed" : event.getEventName());
-                    LoggingManager.getInstance().log(e);
-                }
-            }
-        });
-    }
-
-    public void register(Listener listener, Plugin plugin) {
-        LoggingManager.getInstance().d("Registering " + event.getName());
-        manager.registerEvent(event, listener, EventPriority.NORMAL, exec, plugin, false);
-    }
-    @Setter
-    private static PluginManager manager;
 }

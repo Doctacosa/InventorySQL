@@ -32,11 +32,19 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.player.PlayerEvent;
 
 public abstract class PrePlayerEvent extends PlayerEvent implements InventorySQLEvent, Cancellable {
-    @Getter
-    @Setter
     private boolean cancelled;
 
     public PrePlayerEvent(Player who) {
         super(who);
     }
+
+	public boolean isCancelled()
+	{
+		return this.cancelled;
+	}
+	
+	public void setCancelled(boolean cancelled)
+	{
+		this.cancelled = cancelled;
+	}
 }

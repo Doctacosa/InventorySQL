@@ -26,9 +26,12 @@
 package tk.manf.InventorySQL.manager;
 
 import com.google.common.collect.ImmutableSet;
+
 import lombok.Getter;
+
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+
 import tk.manf.InventorySQL.addons.Addon;
 import tk.manf.InventorySQL.util.ReflectionUtil;
 
@@ -65,6 +68,11 @@ public class AddonManager {
         addons = null;
     }
     
+	public static AddonManager getInstance()
+	{
+		return instance;
+	}
+	
     @Getter
     private static final AddonManager instance = new AddonManager();
 }

@@ -27,6 +27,7 @@ package tk.manf.InventorySQL.manager;
 
 import lombok.Cleanup;
 import lombok.Getter;
+
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -61,6 +62,51 @@ public final class ConfigManager {
         //dbURL = "jdbc:mysql://" + "localhost" + ":" + 3306 + "/" + "mydb" + "?" + "user=" + "root" + "&" + "password=" + "68836883";
     }
 
+	public List<String> getUpdateEvents()
+	{
+		return this.updateEvents;
+	}
+	
+	public String getSerializer()
+	{
+		return this.serializer;
+	}
+	
+	public String getCompressor()
+	{
+		return this.compressor;
+	}
+	
+	public String getDatabaseHandler()
+	{
+		return this.databaseHandler;
+	}
+	
+	public String getDbURL()
+	{
+		return this.dbURL;
+	}
+	
+	public FileConfiguration getLanguage()
+	{
+		return this.language;
+	}
+	
+	public int getSaveInterval()
+	{
+		return this.saveInterval;
+	}
+	
+	public boolean isAutoUpdateEnabled()
+	{
+		return this.autoUpdateEnabled;
+	}
+	
+	public boolean isMetricsEnabled()
+	{
+		return this.metricsEnabled;
+	}
+	
     public void loadLanguage(JavaPlugin plugin) throws IOException {
         language = getConfig(plugin, "language.yml");
     }
@@ -123,6 +169,11 @@ public final class ConfigManager {
         return String.format("%0" + (bytes.length << 1) + "X", bi);
     }
 
+	public static ConfigManager getInstance()
+	{
+		return instance;
+	}
+	
     @Getter
     private static final ConfigManager instance = new ConfigManager();
 }

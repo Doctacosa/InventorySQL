@@ -32,7 +32,7 @@ import org.bukkit.event.player.PlayerEvent;
 
 public class PlayerLoadedEvent extends PlayerEvent implements InventorySQLEvent {
     @Getter
-    private final boolean success;
+    private boolean success;
     private static final HandlerList handlers = new HandlerList();
 
     public PlayerLoadedEvent(boolean success, Player who) {
@@ -40,6 +40,11 @@ public class PlayerLoadedEvent extends PlayerEvent implements InventorySQLEvent 
         this.success = success;
     }
 
+	public boolean isSuccess()
+	{
+		return this.success;
+	}
+	
     @Override
     public HandlerList getHandlers() {
         return handlers;

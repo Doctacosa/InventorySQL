@@ -26,7 +26,9 @@
 package tk.manf.InventorySQL.manager;
 
 import lombok.Getter;
+
 import org.bukkit.command.CommandSender;
+
 import tk.manf.InventorySQL.util.Language;
 
 import java.text.MessageFormat;
@@ -54,6 +56,11 @@ public class LanguageManager {
         return cache.get(lang.getId()).format(args);
     }
 
+	public static LanguageManager getInstance()
+	{
+		return instance;
+	}
+	
     @Getter
     private static final LanguageManager instance = new LanguageManager();
 }

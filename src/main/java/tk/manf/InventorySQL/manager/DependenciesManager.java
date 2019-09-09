@@ -26,7 +26,9 @@
 package tk.manf.InventorySQL.manager;
 
 import com.google.common.collect.ImmutableList;
+
 import lombok.Getter;
+
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginEnableEvent;
@@ -134,6 +136,11 @@ public final class DependenciesManager implements Listener {
         }
     }
     
+	public static DependenciesManager getInstance()
+	{
+		return instance;
+	}
+	
     @Getter
     private static final DependenciesManager instance = new DependenciesManager();
 

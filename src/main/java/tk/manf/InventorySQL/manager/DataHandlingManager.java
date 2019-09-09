@@ -26,7 +26,9 @@
 package tk.manf.InventorySQL.manager;
 
 import lombok.Getter;
+
 import org.bukkit.inventory.ItemStack;
+
 import tk.manf.InventorySQL.datahandling.Compressor;
 import tk.manf.InventorySQL.datahandling.Serializer;
 import tk.manf.InventorySQL.datahandling.exceptions.DataHandlingException;
@@ -62,6 +64,11 @@ public class DataHandlingManager {
         return compressor.compress(serializer.serializeItemStacks(stacks));
     }
 
+	public static DataHandlingManager getInstance()
+	{
+		return instance;
+	}
+	
     @Getter
     private static final DataHandlingManager instance = new DataHandlingManager();
 }

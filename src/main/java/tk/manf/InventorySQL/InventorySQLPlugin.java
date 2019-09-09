@@ -29,7 +29,7 @@ import net.gravitydevelopment.updater.Updater;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.mcstats.Metrics;
+//import org.mcstats.Metrics;
 import tk.manf.InventorySQL.api.InventorySQLAPI;
 import tk.manf.InventorySQL.manager.*;
 import tk.manf.InventorySQL.manager.LoggingManager.DeveloperMessages;
@@ -93,7 +93,8 @@ public final class InventorySQLPlugin extends JavaPlugin {
         }
 
         if (ConfigManager.getInstance().isMetricsEnabled()) {
-            try {
+        	//Disabled Metrics
+            /*try {
                 Metrics metrics = new Metrics(this);
                 //Add Graph here
                 if (metrics.start()) {
@@ -102,7 +103,7 @@ public final class InventorySQLPlugin extends JavaPlugin {
                     LoggingManager.getInstance().logDeveloperMessage("manf", DeveloperMessages.METRICS_OFF);
                 }
             } catch (IOException e) {
-            }
+            }*/
         }
     }
 

@@ -31,10 +31,7 @@ import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 import tk.manf.InventorySQL.datahandling.Serializer;
 import tk.manf.InventorySQL.datahandling.exceptions.SerializationException;
-import tk.manf.InventorySQL.manager.LoggingManager;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,10 +39,12 @@ public class SimpleSerializer implements Serializer {
     private final ItemStack AIR = new ItemStack(Material.AIR);
 
     public ItemStack[] deserializeItemStacks(byte[] b) throws SerializationException {
+        String data = new String(b);
         try {
-            return deserial(JSONValue.parseWithException(new String(b)));
+            Object serialized = JSONValue.parseWithException(data);
+            return deserial(serialized);
         } catch (ParseException ex) {
-            throw new SerializationException("[Parsing Error]", ex);
+            throw new SerializationException("[Parsing Error]: " + data, ex);
         }
     }
 
@@ -64,33 +63,19 @@ public class SimpleSerializer implements Serializer {
                 List<ItemStack> items = new ArrayList<ItemStack>(data.size());
                 for (Object t : data) {
                     if (t instanceof Map) {
-                        final Map<?, ?> mdata = (Map) t;
-                        final Map<String, Object> conv = new HashMap<String, Object>(mdata.size());
-                        for (Map.Entry<?, ?> e : mdata.entrySet()) {
-                            conv.put(String.valueOf(e.getKey()), convert(e.getValue()));
-                        }
-                        LoggingManager.getInstance().log(LoggingManager.Level.DEBUG, "Serializing Data: " + conv.entrySet().toString());
-                        items.add(ItemStack.deserialize(conv));
+                        final Map<String, Object> mdata = (Map) t;
+                        items.add(ItemStack.deserialize(mdata));
                     } else {
                         throw new IllegalArgumentException("Not a Map");
                     }
                 }
                 return items.toArray(new ItemStack[items.size()]);
+            } else {
+                throw new IllegalArgumentException("Not a List");
             }
-            throw new IllegalArgumentException("Not a List");
         } catch (IllegalArgumentException ex) {
             throw new SerializationException(o, ex);
         }
-    }
-
-    private Object convert(Object o) {
-        if (o instanceof Number) {
-            Long v = (Long) o;
-            if (Integer.MAX_VALUE > v.longValue()) {
-                return v.intValue();
-            }
-        }
-        return o;
     }
 
 }

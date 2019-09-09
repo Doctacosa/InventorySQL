@@ -26,6 +26,7 @@
 package tk.manf.InventorySQL.manager;
 
 import lombok.Getter;
+
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
@@ -70,16 +71,19 @@ public class InventoryLockingSystem implements Listener {
     
     @EventHandler
     public void onInventoryClick(final InventoryClickEvent ev) {
-        check(ev, ev.getWhoClicked());
+    	//Run on trying to click in the content of a chest
+        //check(ev, ev.getWhoClicked());
     }
     
     @EventHandler
     public void onInventoryOpen(final InventoryOpenEvent ev) {
-        check(ev, ev.getPlayer());
+    	//Run on opening a chest
+        //check(ev, ev.getPlayer());
     }
     
     @EventHandler
     public void onPlayerLeave(final PlayerQuitEvent ev) {
+    	DatabaseManager.getInstance().savePlayer(ev.getPlayer());
         removeLock(String.valueOf(ev.getPlayer().getUniqueId()));
     }
     
@@ -107,6 +111,11 @@ public class InventoryLockingSystem implements Listener {
         ev.setCancelled(isLocked(String.valueOf(player.getUniqueId())));
     }
 
+	public static InventoryLockingSystem getInstance()
+	{
+		return instance;
+	}
+	
     @Getter
     private static final InventoryLockingSystem instance = new InventoryLockingSystem();
 }

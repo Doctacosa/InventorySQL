@@ -37,11 +37,12 @@ public final class SwitchCommand extends CommandManager.InternalCommand {
 
     @Override
     public void onCommand(CommandSender sender, String[] args) {
-        Preconditions.checkArgument(args.length > 1, "Needs atleast a Server target");
+        Preconditions.checkArgument(args.length >= 1, "Needs at least a Server target");
         changeServerTarget(sender, args[0], getOptionalPlayer(sender, args, 1));
     }
 
     private void changeServerTarget(CommandSender sender, String server, Player target) {
+    	Preconditions.checkArgument(target != null, "Invalid player specified");
         checkPermission(sender, sender.getName().equals(target.getName()) ? "InventorySQL.switch.self" : "InventorySQL.switch.other");
         InventorySQLAPI.getAPI().switchPlayer(target, server);
     }

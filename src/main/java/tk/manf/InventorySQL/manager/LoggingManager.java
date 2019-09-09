@@ -26,6 +26,7 @@
 package tk.manf.InventorySQL.manager;
 
 import lombok.*;
+
 import org.bukkit.Bukkit;
 
 import java.util.logging.Logger;
@@ -71,6 +72,14 @@ public class LoggingManager {
             logger.log(java.util.logging.Level.INFO, null, ex);
         }
     }
+    
+    public void setPrefix(String prefix) {
+    	this.prefix = prefix;
+    }
+    
+    public void setLevel(int level) {
+    	this.level = level;
+    }
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Level {
@@ -96,21 +105,36 @@ public class LoggingManager {
         public static final int ERROR = 0;
     }
 
-    @AllArgsConstructor
-    public static enum DeveloperMessages {
-        //#SUPPORT_DEVELOPERS
-        //Just remind people to be supportive.
-        METRICS_OFF("You turned metrics off :(. Metrics is a good way to support Developers! ( You should also consider donating :) )"),
-        METRICS_LOADED("Thanks for supporting us and using Metrics :)"),
-        DEPRECATED_CLASS("Sorry, but the loaded class is deprecated"),
-        HANDLING_BROKEN("You did not specify proper a proper Handler. Please specify a correct Classname for the missing Handler");
-        @Getter
-        private String message;
-    }
+	public static enum DeveloperMessages
+	{
+		METRICS_OFF("You turned metrics off :(. Metrics is a good way to support Developers! ( You should also consider donating :) )"),
+		METRICS_LOADED("Thanks for supporting us and using Metrics :)"),
+		DEPRECATED_CLASS("Sorry, but the loaded class is deprecated"),
+		HANDLING_BROKEN("You did not specify proper a proper Handler. Please specify a correct Classname for the missing Handler");
+		
+		private String message;
+		
+		private DeveloperMessages(String message)
+		{
+			this.message = message;
+		}
+		
+		public String getMessage()
+		{
+			return this.message;
+		}
+	}
+	
     
     static class Herobrine {
         //Darkness
     }
+    
+	public static LoggingManager getInstance()
+	{
+		return instance;
+	}
+	
     @Getter
     private static final LoggingManager instance = new LoggingManager();
 }

@@ -54,7 +54,7 @@ public class NameConversionTask extends BukkitRunnable {
         this.GET_PLAYER_NAMES_QUERY = "SELECT playername FROM " + tableName;
     }
 
-    @Override
+    //@Override
     public void run() {
         try {
             UUIDFetcher uuidFetcher = new UUIDFetcher(namesToConvert);

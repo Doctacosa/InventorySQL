@@ -27,9 +27,13 @@ package tk.manf.InventorySQL;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.interordi.utilities.Commands;
+
+import javafx.util.Pair;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -38,11 +42,14 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+
 import tk.manf.InventorySQL.commands.InvSQLCommand;
 import tk.manf.InventorySQL.commands.SwitchCommand;
 import tk.manf.InventorySQL.manager.LoggingManager;
 
+import java.beans.ConstructorProperties;
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Map;
 
 public class CommandManager implements CommandExecutor {
@@ -57,8 +64,33 @@ public class CommandManager implements CommandExecutor {
         this.commands = b.build();
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+	@Override
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		
+		//Get the list of potential targets if a selector was used
+		Pair< Integer, List< String > > results = Commands.findTargets(Bukkit.getServer(), sender, cmd, label, args);
+		
+		int position = results.getKey();
+		boolean result = false;
+		if (position != -1) {
+			//Run the command for each target identified by the selector
+			for (String target : results.getValue()) {
+				args[position] = target;
+				
+				result = runCommand(sender, cmd, label, args);
+			}
+		} else {
+			//Run the command as-is
+			result = runCommand(sender, cmd, label, args);
+		}
+		
+		return result;
+	}
+	
+	
+	//Actually run the entered command
+	public boolean runCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		
         try {
             Preconditions.checkArgument(commands.containsKey(cmd.getName()), "Command not found");
             commands.get(cmd.getName()).onCommand(sender, args);
@@ -96,10 +128,31 @@ public class CommandManager implements CommandExecutor {
     
     @Data
     public static abstract class InternalCommand {
-        private final String identifier;
+        private String identifier = "";
         @Setter(AccessLevel.MODULE)
         private CommandManager manager;
         
+		@ConstructorProperties({"identifier"})
+		public InternalCommand(String identifier)
+		{
+			this.identifier = identifier;
+		}
+		
+    	public String getIdentifier()
+    	{
+    		return this.identifier;
+    	}
+    	
+    	void setManager(CommandManager manager)
+    	{
+    		this.manager = manager;
+    	}
+    	
+    	public CommandManager getManager()
+    	{
+    		return this.manager;
+    	}
+    	
         public Player getOptionalPlayer(CommandSender sender, String[] args, int index) {
             return args.length == index ? toPlayer(sender) : Bukkit.getPlayer(args[index]);
         }

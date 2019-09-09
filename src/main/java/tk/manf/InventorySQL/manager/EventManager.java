@@ -26,8 +26,10 @@
 package tk.manf.InventorySQL.manager;
 
 import lombok.Getter;
+
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
+
 import tk.manf.InventorySQL.event.InventorySQLEvent;
 
 public class EventManager {
@@ -41,6 +43,11 @@ public class EventManager {
         return ev;
     }
     
+	public static EventManager getInstance()
+	{
+		return instance;
+	}
+	
     @Getter
     private static final EventManager instance = new EventManager();
 }

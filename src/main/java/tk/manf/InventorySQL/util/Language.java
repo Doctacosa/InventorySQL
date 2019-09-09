@@ -50,6 +50,14 @@ public final class Language {
         }
         instances.add(this);
     }
+    
+    public String getId() {
+    	return this.id;
+    }
+    
+    public String getPattern() {
+    	return this.pattern;
+    }
 
     public static final int PHRASES = 6;
     public static final Language COMMAND_ERROR = new Language("command.error", "Error while performing this Command!");
