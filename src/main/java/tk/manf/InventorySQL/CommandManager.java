@@ -27,9 +27,10 @@ package tk.manf.InventorySQL;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.interordi.utilities.Commands;
 
-import javafx.util.Pair;
+import tk.manf.InventorySQL.util.CommandTargets;
+import tk.manf.InventorySQL.util.Commands;
+
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
@@ -64,18 +65,16 @@ public class CommandManager implements CommandExecutor {
         this.commands = b.build();
     }
 
-	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		
 		//Get the list of potential targets if a selector was used
-		Pair< Integer, List< String > > results = Commands.findTargets(Bukkit.getServer(), sender, cmd, label, args);
+		CommandTargets results = Commands.findTargets(Bukkit.getServer(), sender, cmd, label, args);
 		
-		int position = results.getKey();
 		boolean result = false;
-		if (position != -1) {
+		if (results.position != -1) {
 			//Run the command for each target identified by the selector
-			for (String target : results.getValue()) {
-				args[position] = target;
+			for (String target : results.targets) {
+				args[results.position] = target;
 				
 				result = runCommand(sender, cmd, label, args);
 			}
