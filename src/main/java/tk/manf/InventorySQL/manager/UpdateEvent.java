@@ -19,11 +19,6 @@ final class UpdateEvent {
     private final Class<? extends Event> event;
     private final EventExecutor exec;
 
-	private UpdateEvent(Class<? extends Event> event, EventExecutor exec)
-	{
-		this.event = event;this.exec = exec;
-	}
-	
     protected UpdateEvent(final Class<? extends Event> type, final Method m) {
         this(type, new EventExecutor() {
             public void execute(Listener listener, Event event) throws EventException {
